@@ -3,50 +3,20 @@
 class Cell {
   constructor(row, col) {
     this.letter = "9";
-    this.resolution = RESOLUTION;
-    this.color = color(255);
+    this.boxColor = color(255); 
     this.row = row;
     this.col = col;
+    this.checked = false;
     }
     
-    displayCell(cell) {
+    displayCell() {
       noStroke();
-      fill(this.color);
+      fill(this.boxColor);
       rect(this.row * RESOLUTION, this.col * RESOLUTION, RESOLUTION, RESOLUTION);
-      fill(0);
+      fill(0); //text color
       textAlign(CENTER);
-      text(this.letter, this.row * RESOLUTION, this.col * RESOLUTION);
-      console.log(cell);
+      text(this.letter, this.row * RESOLUTION + 12, this.col * RESOLUTION + 14);
+      //console.log(this);
     }
     
   }
-
-
-
-
-
-
-/*
-function Cell(_x, _y, _resolution, _index) {
-  this.x = _x;
-  this.y = _y;
-  this.index = _index;
-  this.resolution = _resolution;
-  this.num;
-  this.letter = letters[floor(random(letters.length))];
-  this.color = color(255);
-
-  this.display = function() {
-    noStroke();
-    fill(this.color);
-    rect(this.x * this.resolution, this.y * this.resolution, this.resolution, this.resolution);
-    this.drawLetter();
-  }
-
-  this.drawLetter = function() {
-    fill(0);
-    textAlign(CENTER);
-    text(this.letter, this.x * this.resolution + 6, this.y * this.resolution + 10);
-  }
-}
-*/

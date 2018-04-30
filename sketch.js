@@ -7,6 +7,7 @@ const RESOLUTION = 24;
 const ROWS = HEIGHT / RESOLUTION;
 const COLS = WIDTH / RESOLUTION;
 
+var words;
 var cellGrid;
 var cellQueue = [];
 var drawCells = [];
@@ -21,7 +22,6 @@ function makeGrid(_rows, _cols) {
 		  grid[i].push(new Cell());
 	  }
   }
-  console.log(grid);
 	return grid;
 }
 
@@ -29,8 +29,8 @@ function randomLetter(_letters) {
   return _letters[floor(random(_letters.length))]
 }
 
-
-function initLetter() {
+//returns the first cell
+function initCell() {
   var row = floor(random(cellGrid.length));
   var col = floor(random(cellGrid[0].length));
 
@@ -39,13 +39,21 @@ function initLetter() {
   firstCell.row = row;
   firstCell.col = col;
   firstCell.letter = randomLetter(LETTERS);
-
+  firstCell.checked = true;
+  console.log(firstCell);
   return firstCell;
+}
+
+//pushes a cell into the global drawCells
+function pushCell(cell)
+{
+  drawCells.push(cell);
 }
 
 function preload() {
   words = loadStrings("twowords.txt");
-  
+  wordMap = new Map();
+
   for (var i = 0; i < words.length; i++) {
     words[i] = words[i].toLowerCase();
   }
@@ -53,6 +61,7 @@ function preload() {
 
 function setup() {
   createCanvas(600, 600);
+  background(100);
 
   cellGrid = makeGrid(ROWS, COLS);
   textSize(10);
@@ -60,52 +69,75 @@ function setup() {
   //draws one frame a second
   frameRate(1);
 
-  var initialCell = initLetter();
+  var initialCell = initCell();
   initialCell.displayCell();
+  pushCell(initialCell);
 }
 
 function draw() {
-  //background(0);
-  //addLetters();
-  /*
+
+  addLetters(drawCells);
+
   for (let i = 0; i < drawCells.length; i++) {
     drawCells[i].displayCell();
   }
-  */
+  
 
 }
 
-function createNewCell(c) {
-  let newX;
-  let newY;
-  if (c.x * resolution == width) {
-    newX = -(width / resolution);
-    newY = 1;
-  } else {
-    newX = 1
-    newY = 0;
-  }
+//returns true if valid coordinates
+function isInBounds(coords) {
+  var rowCheck = (coords[0] >= 0) && (coords[0] < ROWS);
+  var colCheck = (coords[1] >= 0) && (coords[1] < COLS);
 
-  let newCell = new Cell((c.x + newX), (c.y + newY), resolution, c.index += 1);
+  return (rowCheck && colCheck)
+}
 
-  if (c.index >= width / resolution) {
-    // check for vertical and to the left
-    let topLetter = x;
-    let leftLetter = x;
-    //?????????
+//adds letters to the global list drawCells
+function addLetters(_drawCells) {
+  
+  for (let i = 0; i < _drawCells.length; i++) {
+    //get index-valid neighbors
+    var curRow = drawCells[i].row;
+    var curCol = drawCells[i].col;
 
-  } else {
+    let adjacentCoords = [[curRow-1, curCol],
+                          [curRow, curCol+1],
+                          [curRow+1, curCol],
+                          [curRow, curRow-1],
+                          ]
 
-    let newWordArray = [];
-    for (var i = 0; i < words.length; i++) {
-      if (words[i].charAt(0) == c.letter) {
-        newWordArray.push(words[i]);
+    let validCoords = adjacentCoords.filter(isInBounds);
+
+    for (let j = 0; j < validCoords.length; j++) {
+      let checkRow = validCoords[j][0];
+      let checkCol = validCoords[j][1];
+    
+      // if we haven't visited this cell before
+      if (!cellGrid[checkRow][checkCol].checked) {
+        var canFormWord = formWord(_drawCells[i].letter);
+        if (canFormWord != false) {
+          cellGrid[checkRow][checkCol].letter = canFormWord;
+          cellGrid[checkRow][checkCol].checked = true;
+          cellGrid[checkRow][checkCol].row = checkRow;
+          cellGrid[checkRow][checkCol].col = checkCol;
+          pushCell(cellGrid[checkRow][checkCol]);
+        }
       }
     }
-    let randomWord = random(newWordArray);
-    newCell.letter = randomWord.charAt(1);
-  }
-  if (newCell.letter != null) {
-    cells.push(newCell);
   }
 }
+
+function formWord(startLetter) {
+  //words global
+  for (var i = 0; i < words.length; i++) {
+    //don't know why lowercase not working above in preload
+    words[i] = words[i].toLowerCase();
+    if (words[i].substring(0,1) == startLetter)  {
+      wordMatch = words.splice(i,1);
+      return wordMatch[0].substring(1);
+    }
+  }
+  return false;
+}
+
